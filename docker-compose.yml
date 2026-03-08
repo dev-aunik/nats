@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  nats:
+   image: nats:latest
+   ports:
+    - "4222:4222"
+    
+  inventory-service:
+   build: ./inventory-service
+   depends_on:
+    - nats
+
+  order-service:
+   build: ./order-service
+   depends_on:
+    - nats
