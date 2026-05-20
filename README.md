@@ -49,3 +49,9 @@ Payload:
 - `NATS_URL` is configured in `docker-compose.yml`.
 - Local logs and binaries are ignored by Git.
 - This is intentionally small so the message flow is easy to follow.
+
+## Troubleshooting
+
+- If a service exits early, run `docker compose logs <service-name>`.
+- If events are not received, confirm both services use `NATS_URL=nats://nats:4222`.
+- If port `4222` is already in use, change the exposed port in `docker-compose.yml`.
