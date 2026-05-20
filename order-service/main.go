@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -16,10 +17,16 @@ type Order struct {
 }
 
 func main() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer nc.Drain()
 
 	orderID := 101
 	for {
@@ -31,9 +38,16 @@ func main() {
 			Quantity:  1,
 		}
 
-		data, _ := json.Marshal(order)
+		data, err := json.Marshal(order)
+		if err != nil {
+			log.Printf("failed to encode order: %v", err)
+			continue
+		}
 
-		nc.Publish("orders.created", data)
+		if err := nc.Publish("orders.created", data); err != nil {
+			log.Printf("failed to publish order: %v", err)
+			continue
+		}
 
 		fmt.Printf("Order %d placed for Product %d\n", order.OrderID, order.ProductID)
 

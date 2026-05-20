@@ -1,17 +1,19 @@
-version: "3.9"
-
 services:
   nats:
-   image: nats:latest
-   ports:
-    - "4222:4222"
-    
+    image: nats:2-alpine
+    ports:
+      - "4222:4222"
+
   inventory-service:
-   build: ./inventory-service
-   depends_on:
-    - nats
+    build: ./inventory-service
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
 
   order-service:
-   build: ./order-service
-   depends_on:
-    - nats
+    build: ./order-service
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats

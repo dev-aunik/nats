@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/nats-io/nats.go"
 )
@@ -15,10 +16,16 @@ type Order struct {
 }
 
 func main() {
-	nc, err := nats.Connect(nats.DefaultURL)
+	natsURL := os.Getenv("NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	nc, err := nats.Connect(natsURL)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer nc.Drain()
 
 	inventory := map[int]int{
 		51: 10, // Start with 10 items of product 51
@@ -26,7 +33,10 @@ func main() {
 
 	nc.Subscribe("orders.created", func(msg *nats.Msg) {
 		var order Order
-		json.Unmarshal(msg.Data, &order)
+		if err := json.Unmarshal(msg.Data, &order); err != nil {
+			log.Printf("failed to decode order: %v", err)
+			return
+		}
 		fmt.Printf("Inventory received order: %d\n", order.OrderID)
 
 		if stock, exists := inventory[order.ProductID]; exists && stock >= order.Quantity {

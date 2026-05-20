@@ -1,5 +1,4 @@
-#Builder Stage
-FROM golang:1.22-alpine as builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -10,11 +9,10 @@ COPY . .
 
 RUN go build -o inventory-service
 
-# Runtime Stage
-FROM alpine:latest
+FROM alpine:3.22
 
 WORKDIR /app
 
 COPY --from=builder /app/inventory-service .
 
-CMD [ "./inventory-service" ]
+CMD ["./inventory-service"]
